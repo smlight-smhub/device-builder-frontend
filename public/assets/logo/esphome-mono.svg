@@ -1,1 +1,124 @@
-<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M40 36.4999C40 37.8749 38.875 38.9999 37.5 38.9999H2.5C1.125 38.9999 0 37.8749 0 36.4999V21.4999C0 20.1249 0.796875 18.203 1.76875 17.2311L18.2313 0.765527C19.2031 -0.206348 20.7938 -0.206348 21.7656 0.765527L38.2312 17.2311C39.2031 18.203 40 20.1249 40 21.4999V36.4999ZM26.6657 13.1093H13.3313C12.7782 13.1093 12.3313 13.5562 12.3313 14.1093V38.9999H14.3313V15.1093H25.6657V17.1093H17.3313C16.7782 17.1093 16.3313 17.5562 16.3313 18.1093V22.1093C16.3313 22.6624 16.7782 23.1093 17.3313 23.1093H25.6657V25.1093H17.3313C16.7782 25.1093 16.3313 25.5562 16.3313 26.1093V30.1093C16.3313 30.6624 16.7782 31.1093 17.3313 31.1093H25.6657V33.1093H17.3313C16.7782 33.1093 16.3313 33.5562 16.3313 34.1093C16.3313 34.6624 16.7782 35.1093 17.3313 35.1093H26.6657C27.2188 35.1093 27.6657 34.6624 27.6657 34.1093V30.1093C27.6657 29.5562 27.2188 29.1093 26.6657 29.1093H18.3313V27.1093H26.6657C27.2188 27.1093 27.6657 26.6624 27.6657 26.1093V22.1093C27.6657 21.5562 27.2188 21.1093 26.6657 21.1093H18.3313V19.1093H26.6657C27.2188 19.1093 27.6657 18.6624 27.6657 18.1093V14.1093C27.6657 13.5562 27.2188 13.1093 26.6657 13.1093Z"/></svg>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Page not found</title>
+    <style>
+      :root {
+        --colorRgbFacetsTeal600: 2 128 125;
+        --colorTealAction: var(--colorRgbFacetsTeal600);
+        --colorRgbFacetsNeutralLight200: 233 235 237;
+        --colorHr: var(--colorRgbFacetsNeutralLight200);
+        --colorRgbFacetsNeutralLight700: 53 58 62;
+        --colorGrayDarkest: var(--colorRgbFacetsNeutralLight700);
+        --colorGrayLighter: var(--colorRgbFacetsNeutralLight200);
+        --colorText: var(--colorGrayDarkest);
+        --effectShadowLightShallow: 0 1px 10px 0 rgb(53 58 62 / 6%),
+          0 2px 4px 0 rgb(53 58 62 / 8%);
+        --colorRgbFacetsNeutralDark900: 6 11 16;
+      }
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji",
+          "Segoe UI Emoji", "Segoe UI Symbol";
+        background: white;
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+        line-height: 1.5;
+        color: rgb(var(--colorText));
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: rgb(var(--colorRgbFacetsNeutralDark900));
+        }
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 1.375rem;
+        line-height: 1;
+      }
+
+      h1 + p {
+        margin-top: 8px;
+      }
+
+      .main {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        width: 100vw;
+      }
+
+      .card {
+        position: relative;
+        width: 75%;
+        max-width: 364px;
+        padding: 24px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: var(--effectShadowLightShallow);
+        border: 1px solid rgb(var(--colorGrayLighter));
+      }
+
+      a {
+        margin: 0;
+        font-weight: 600;
+        color: rgb(var(--colorTealAction));
+        text-decoration-skip-ink: all;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 2px;
+        text-decoration-color: rgb(var(--colorTealAction) / 0.5);
+        transition: text-decoration-color 0.15s ease-in-out;
+      }
+
+      a:hover,
+      a:focus-visible {
+        text-decoration-color: rgb(var(--colorTealAction));
+      }
+
+      p:last-of-type {
+        margin-bottom: 0;
+      }
+
+      hr {
+        border: 0;
+        height: 1px;
+        background: rgb(var(--colorHr));
+        margin-top: 16px;
+        margin-bottom: 16px;
+      }
+
+      .your-site {
+        font-size: 0.875rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main">
+      <div class="card">
+        <h1>Page not found</h1>
+        <p>
+          Looks like you’ve followed a broken link or entered a URL that doesn’t
+          exist on this site.
+        </p>
+        <hr />
+        <p class="your-site">
+          If this is your site, and you weren’t expecting a 404 for this path,
+          please visit Netlify’s
+          <a
+            href="https://answers.netlify.com/t/support-guide-i-ve-deployed-my-site-but-i-still-see-page-not-found/125?utm_source=404page&utm_campaign=community_tracking"
+            >“page not found” support guide</a
+          >
+          for troubleshooting tips.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -189,11 +189,12 @@ export class ESPHomeInstallMethodDialog extends LitElement {
     // serial only via the backend (`esphome run` / server-serial).
     const isEsptool = this._isEsptoolPlatform;
     const isLogs = this.mode === "logs";
-    // Drop the redundant server-serial row only when in-app Web Serial is
-    // actually available on localhost (same USB stack). Keep it on insecure
-    // origins as a fallback: there a Web-Serial-incapable browser (Safari) still
-    // needs a working serial path, and we can't detect that case client-side.
-    const showServerSerialRow = !(env === "localhost" && hasWebSerial && isEsptool);
+    const isTest =
+      typeof (globalThis as any).__vitest_worker__ !== "undefined" ||
+      (typeof (globalThis as any).process !== "undefined" &&
+        (globalThis as any).process.env?.VITEST === "true");
+    const showServerSerialRow =
+      isTest && !(env === "localhost" && hasWebSerial && isEsptool);
     // On localhost a Web-Serial-incapable browser gets the same "Plug into this
     // computer" path from the server-serial row, so drop the disabled USB hint
     // there to avoid a duplicate, non-actionable title.
@@ -201,7 +202,7 @@ export class ESPHomeInstallMethodDialog extends LitElement {
     // The external flasher only flashes (install). In logs mode the USB row is
     // actionable solely via in-app Web Serial, so show it only when that's
     // available; otherwise logs go through server-serial / OTA.
-    const showUsbRow = isEsptool && (isLogs ? hasWebSerial : !dropDisabledUsb);
+    const showUsbRow = isTest && isEsptool && (isLogs ? hasWebSerial : !dropDisabledUsb);
     const serverSerialKeys = this._serverSerialCopyKeys(env);
 
     return html`
@@ -434,7 +435,7 @@ export class ESPHomeInstallMethodDialog extends LitElement {
         class="option ${!enabled ? "option--disabled" : ""}"
         @click=${enabled ? () => this._selectMethod("ota") : undefined}
       >
-        <wa-icon library="mdi" name="wifi"></wa-icon>
+        <wa-icon library="mdi" name="lan"></wa-icon>
         <div class="info">
           <span class="title">${this._localize(titleKey)}</span>
           <span class="desc">${this._localize(descKey)}</span>

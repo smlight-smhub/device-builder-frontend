@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en" class="wa-brand-cyan">
+<html lang="en" class="wa-brand-green">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Tracks --esphome-primary's fallback below (HTML attr can't read a CSS var). -->
-    <meta name="theme-color" content="#009ac7" />
+    <meta name="theme-color" content="#19764a" />
     <!--
       Content-Security-Policy - defense in depth against any future
       XSS that slips past Lit's auto-escaping. Catches injected
@@ -79,7 +79,7 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' ws: wss: data: https://schema.esphome.io; object-src 'none'; base-uri 'self'; form-action 'self'"
     />
-    <title>ESPHome Device Builder</title>
+    <title>SMHUB ESPHome Builder</title>
     <!-- Backend rewrites ``__ESPHOME_BASE_HREF__`` per-request to
          the deployment prefix; values MUST end with a trailing
          slash so a relative URL like ``app.HASH.js`` resolves
@@ -117,12 +117,12 @@
         /* App palette — the single place to adjust colors. Each is HA's theme
            var when embedded, else the fallback; everything reads these tokens,
            so editing a value here overrides HA everywhere. */
-        --esphome-primary: var(--primary-color, #009ac7);
+        --esphome-primary: var(--color-primary, var(--primary-color, #19764a));
         --esphome-on-primary: var(--text-primary-color, #ffffff);
-        --esphome-success: var(--success-color, #2ecc71);
-        --esphome-warning: var(--warning-color, #f39c12);
-        --esphome-error: var(--error-color, #e74c3c);
-        --esphome-offline: var(--disabled-text-color, #95a5a6);
+        --esphome-success: var(--color-success, var(--success-color, #2ecc71));
+        --esphome-warning: var(--color-warning, var(--warning-color, #f97316));
+        --esphome-error: var(--color-error, var(--error-color, #ff4d4f));
+        --esphome-offline: var(--color-disabled, var(--disabled-text-color, #95a5a6));
       }
       :root,
       .wa-light,

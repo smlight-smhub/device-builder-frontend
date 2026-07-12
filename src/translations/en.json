@@ -2,7 +2,7 @@
   "language": "English",
   "flag": "🇬🇧",
   "dashboard": {
-    "title": "ESPHome Device Builder",
+    "title": "SMHUB ESPHome Builder",
     "subtitle": "Create and make your smart devices and automations",
     "discovered_count": "{count, plural, one {Discovered # device} other {Discovered # devices}}",
     "discovered_status": "Discovered",

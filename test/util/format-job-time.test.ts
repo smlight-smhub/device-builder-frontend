@@ -67,7 +67,7 @@ describe("formatElapsed", () => {
 
 describe("formatAbsoluteTime", () => {
   it("drops the date for same-day timestamps", () => {
-    const iso = new Date("2026-05-01T13:32:00Z").toISOString();
+    const iso = new Date("2026-05-01T14:15:00Z").toISOString();
     // Hour/minute output depends on the test runner's tz; just assert
     // it has the HH:MM shape and no month abbreviation.
     const out = formatAbsoluteTime(iso, NOW, "en-US");

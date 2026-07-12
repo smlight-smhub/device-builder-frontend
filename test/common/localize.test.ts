@@ -3,7 +3,7 @@ import { defaultLocalize, matchLocale } from "../../src/common/localize.js";
 
 describe("defaultLocalize", () => {
   it("resolves a top-level string key", () => {
-    expect(defaultLocalize("dashboard.title")).toBe("ESPHome Device Builder");
+    expect(defaultLocalize("dashboard.title")).toBe("SMHUB ESPHome Builder");
   });
 
   it("resolves a deeply nested key", () => {

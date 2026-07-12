@@ -130,7 +130,8 @@ export class ESPHomeLayout extends LitElement {
         align-items: center;
         gap: var(--wa-space-m);
         padding: 0 var(--content-gutter);
-        background: var(--esphome-primary);
+        background: var(--wa-color-surface-default, #f8f9fa);
+        border-bottom: 1px solid var(--wa-color-surface-border, rgba(0, 0, 0, 0.12));
         height: var(--esphome-header-height);
         box-sizing: border-box;
         overflow: hidden;
@@ -160,7 +161,7 @@ export class ESPHomeLayout extends LitElement {
         justify-content: center;
         border: none;
         background: none;
-        color: var(--esphome-on-primary);
+        color: var(--wa-color-text-normal, #212529);
         padding: var(--header-edge-inset);
         /* Pull only the arrow to the bar edge; routes without an
            arrow keep the header's content-gutter inset. */
@@ -176,7 +177,11 @@ export class ESPHomeLayout extends LitElement {
 
       .header-back:hover {
         opacity: 1;
-        background: color-mix(in srgb, var(--esphome-on-primary), transparent 85%);
+        background: color-mix(
+          in srgb,
+          var(--wa-color-text-normal, #212529),
+          transparent 85%
+        );
       }
 
       .header-back wa-icon {
@@ -184,7 +189,6 @@ export class ESPHomeLayout extends LitElement {
       }
 
       .header-logo {
-        width: 44px;
         height: 44px;
         border-radius: var(--wa-border-radius-l);
         display: flex;
@@ -198,6 +202,12 @@ export class ESPHomeLayout extends LitElement {
         cursor: pointer;
       }
 
+      .header-logo img {
+        height: 100%;
+        width: auto;
+        display: block;
+      }
+
       .header-text {
         min-width: 0;
         overflow: hidden;
@@ -207,7 +217,7 @@ export class ESPHomeLayout extends LitElement {
         margin: 0;
         font-size: var(--wa-font-size-m);
         font-weight: var(--wa-font-weight-bold);
-        color: var(--esphome-on-primary);
+        color: var(--wa-color-text-normal, #212529);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -235,9 +245,14 @@ export class ESPHomeLayout extends LitElement {
         text-transform: uppercase;
         padding: 2px 6px;
         border-radius: var(--wa-border-radius-s);
-        background: color-mix(in srgb, var(--esphome-on-primary), transparent 80%);
-        color: var(--esphome-on-primary);
-        border: 1px solid color-mix(in srgb, var(--esphome-on-primary), transparent 60%);
+        background: color-mix(
+          in srgb,
+          var(--wa-color-text-normal, #212529),
+          transparent 90%
+        );
+        color: var(--wa-color-text-normal, #212529);
+        border: 1px solid
+          color-mix(in srgb, var(--wa-color-text-normal, #212529), transparent 70%);
         line-height: 1;
         flex-shrink: 0;
       }
@@ -245,8 +260,8 @@ export class ESPHomeLayout extends LitElement {
       .header-text p {
         margin: 0;
         font-size: var(--wa-font-size-xs);
-        color: var(--esphome-on-primary);
-        opacity: 0.75;
+        color: var(--wa-color-text-quiet, #697077);
+        opacity: 0.85;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -292,16 +307,14 @@ export class ESPHomeLayout extends LitElement {
            doesn't crowd the 40px bar's edges. box-sizing keeps the
            padding inside the 32px box; the img fills what's left. */
         .header-logo {
-          width: 32px;
           height: 32px;
           padding: 3px 0;
           box-sizing: border-box;
         }
 
         .header-logo img {
-          width: 100%;
           height: 100%;
-          object-fit: contain;
+          width: auto;
         }
 
         /* Embedded in HA, its narrow bar already shows the title, so
@@ -386,7 +399,11 @@ export class ESPHomeLayout extends LitElement {
               : nothing
           }
           <button class="header-logo" @click=${this._goHome}>
-            <img src=${withBase("/assets/logo/esphome.svg")} alt="ESPHome" />
+            <img
+              src=${withBase("/assets/logo/logo.png")}
+              srcset="${withBase("/assets/logo/logo@2x.png")} 2x"
+              alt="SMLIGHT"
+            />
           </button>
         </div>
         <div class="header-text">
