@@ -33,7 +33,7 @@ import type { ConfiguredDevice } from "../../api/types/devices.js";
 import type { LocalizeFunc } from "../../common/localize.js";
 import { apiContext, devicesContext, localizeContext } from "../../context/index.js";
 import { floatRequiredFirst } from "../../util/config-entry-ordering.js";
-import { anyAdvancedEntry } from "../../util/config-entry-tree.js";
+import { anyAdvancedEntry, pathIsAdvanced } from "../../util/config-entry-tree.js";
 import {
   catalogEntryToProvider,
   type ComponentProvider,
@@ -42,6 +42,7 @@ import { isEntryVisible, type ValidationError } from "../../util/config-validati
 import { resolveDeviceName } from "../../util/device-name.js";
 import { getErrorMessage } from "../../util/error-message.js";
 import { fetchAllComponents } from "../../util/fetch-all-components.js";
+import { fireEvent } from "../../util/fire-event.js";
 import { getIn, isPrimitiveOrNullish } from "../../util/nested-values.js";
 import {
   fetchPinRegistryModes,
@@ -49,6 +50,7 @@ import {
   subscribePinRegistryModes,
 } from "../../util/pin-registry-modes-cache.js";
 import { registerMdiIcons } from "../../util/register-icons.js";
+import { nearestScrollContainer } from "../../util/scroll-container.js";
 import { SessionBlobCacheController } from "../../util/session-blob-cache-controller.js";
 import { looksLikeSubstitution, parseSubstitutions } from "../../util/substitutions.js";
 import {
@@ -121,6 +123,10 @@ export interface ConfigEntryValueChange {
   path: string[];
   value: unknown;
 }
+
+/** How long a clicked advanced-control anchor stays valid awaiting the
+ *  host's ``showAdvanced`` round-trip (normally one render, milliseconds). */
+export const ADVANCED_ANCHOR_TTL_MS = 2000;
 
 @customElement("esphome-config-entry-form")
 export class ESPHomeConfigEntryForm extends LitElement {
@@ -257,6 +263,10 @@ export class ESPHomeConfigEntryForm extends LitElement {
   @property({ attribute: false })
   focusFieldPath?: string[];
 
+  /** ``focusFieldPath`` key already advanced-revealed — one-shot per
+   *  target so a later deliberate collapse sticks. */
+  private _focusRevealKey?: string;
+
   @state()
   private _nestedOpenSections: Set<string> = new Set();
 
@@ -309,6 +319,19 @@ export class ESPHomeConfigEntryForm extends LitElement {
    *  post-render radio-group sync; kept in a controller so this file doesn't
    *  grow. */
   private _constraintClusters = new ConstraintClusterController(this);
+
+  /** gateAdvanced unit placement (key → paints inline, else gated) frozen
+   *  while the section is open, so a value landing mid-edit doesn't re-home
+   *  the field above the switch under the user's pointer (#1977). Cleared on
+   *  close and on ``entries`` change; the next closed render classifies live
+   *  again. */
+  private _openAdvancedPlacement: Map<string, boolean> = new Map();
+
+  /** Viewport top of the advanced control at click time, consumed when the
+   *  host's ``showAdvanced`` round-trips back. Nested basic groups reveal
+   *  advanced children in place ABOVE the control, so toggling shifts it by
+   *  hundreds of px (#1977); the scroll is compensated to keep it put. */
+  private _advancedControlAnchor?: { top: number; at: number };
 
   static styles = [
     fieldRendererStyles,
@@ -400,7 +423,14 @@ export class ESPHomeConfigEntryForm extends LitElement {
       cluster.members.some(
         (m) =>
           getIn(this.values, [m.key]) !== undefined ||
-          isEntryVisible(m, this.values, this.presentComponents, targetPlatform)
+          isEntryVisible(
+            m,
+            this.values,
+            this.presentComponents,
+            targetPlatform,
+            undefined,
+            this.entries
+          )
       );
     const renderedClusterKeys = new Set(
       plan.clusters.filter(clusterRenders).map((c) => c.members[0].key)
@@ -447,9 +477,24 @@ export class ESPHomeConfigEntryForm extends LitElement {
         }
         return hasMaterialValue(item, this.values);
       };
+      // While the section is open both buckets are on screen, so live
+      // reclassification only moves fields around mid-edit; freeze each
+      // unit's placement at first sight and re-classify live once closed
+      // (under gateAdvanced ``open`` is exactly ``showAdvanced``). The
+      // ``set`` is a memo-cache write, not reactive state — the units it
+      // keys on exist only inside this render plan; ``willUpdate`` owns
+      // every clear.
       gatedAdvanced = [];
       for (const item of advanced) {
-        (unitPrefilled(item) ? inlineAdvanced : gatedAdvanced).push(item);
+        let inline: boolean;
+        if (this.showAdvanced) {
+          const key = Array.isArray(item) ? item[0].key : item.key;
+          inline = this._openAdvancedPlacement.get(key) ?? unitPrefilled(item);
+          this._openAdvancedPlacement.set(key, inline);
+        } else {
+          inline = unitPrefilled(item);
+        }
+        (inline ? inlineAdvanced : gatedAdvanced).push(item);
       }
     }
     // gateAdvanced never force-opens on a pre-filled field (those already paint
@@ -531,24 +576,40 @@ export class ESPHomeConfigEntryForm extends LitElement {
         size="small"
         ?disabled=${locked}
         .checked=${open}
-        @change=${(e: Event) =>
-          this._emitAdvancedToggle(
-            (e.target as HTMLInputElement & { checked: boolean }).checked
-          )}
+        @change=${(e: Event) => {
+          const sw = e.currentTarget as HTMLElement & { checked: boolean };
+          const row = sw.parentElement;
+          if (row) {
+            this._advancedControlAnchor = {
+              top: row.getBoundingClientRect().top,
+              at: performance.now(),
+            };
+          }
+          this._emitAdvancedToggle(sw.checked);
+        }}
       >
         ${label}
       </wa-switch>
     </div>`;
   }
 
+  /** Scroll-compensate the control back to its click-time viewport position
+   *  once the toggled ``showAdvanced`` re-render landed. The anchor expires
+   *  quickly so a host that declined the toggle can't leave a stale one to
+   *  fire on a later, unrelated ``showAdvanced`` change. */
+  private _restoreAdvancedControlAnchor(changed: PropertyValues): void {
+    const anchor = this._advancedControlAnchor;
+    if (!anchor || !changed.has("showAdvanced")) return;
+    this._advancedControlAnchor = undefined;
+    if (performance.now() - anchor.at > ADVANCED_ANCHOR_TTL_MS) return;
+    const row = this.shadowRoot?.querySelector<HTMLElement>(".advanced-toggle-row");
+    if (!row) return;
+    const scroller = nearestScrollContainer(row);
+    if (scroller) scroller.scrollTop += row.getBoundingClientRect().top - anchor.top;
+  }
+
   private _emitAdvancedToggle(show: boolean) {
-    this.dispatchEvent(
-      new CustomEvent("advanced-toggle", {
-        detail: { show },
-        bubbles: true,
-        composed: true,
-      })
-    );
+    fireEvent(this, "advanced-toggle", { show });
   }
 
   /** Fallback banner for *unsatisfied* constraint groups that aren't visually
@@ -589,10 +650,16 @@ export class ESPHomeConfigEntryForm extends LitElement {
     if (changed.has("entries") && changed.get("entries") !== undefined) {
       this._pendingUnits.clear();
       this._editingMagnitudes.clear();
+      this._openAdvancedPlacement.clear();
       this._constraintClusters.reset();
       // Re-seed disclosures for the new component; a key like "pin:pin-advanced"
       // recurs across sections, and the form instance is reused.
       this._seededNestedOpen.clear();
+    }
+    // Closing the advanced section drops the frozen placement so the next
+    // open re-freezes from the then-current YAML state.
+    if (changed.has("showAdvanced") && !this.showAdvanced) {
+      this._openAdvancedPlacement.clear();
     }
   }
 
@@ -614,6 +681,24 @@ export class ESPHomeConfigEntryForm extends LitElement {
     // field paints inline, so nothing needs the section forced open — and flipping
     // showAdvanced would reveal every empty advanced field, the bug this guards.
     if (this.advancedSection && !this.showAdvanced && this._effectiveForceOpen()) {
+      this._emitAdvancedToggle(true);
+    }
+    this._maybeRevealForFocus();
+    this._restoreAdvancedControlAnchor(changed);
+  }
+
+  /** When the YAML cursor targets a hidden advanced field, ask the host
+   *  to open the section (once per target) so the scroll can reach it. */
+  private _maybeRevealForFocus(): void {
+    if (!this.advancedSection || this.showAdvanced || !this.focusFieldPath?.length) {
+      return;
+    }
+    // Entries can land after the path (async catalog) — hold the shot.
+    if (this.entries.length === 0) return;
+    const key = fieldKeyAttr(this.focusFieldPath);
+    if (key === this._focusRevealKey) return;
+    this._focusRevealKey = key;
+    if (pathIsAdvanced(this.entries, this.focusFieldPath)) {
       this._emitAdvancedToggle(true);
     }
   }
@@ -1073,13 +1158,7 @@ export class ESPHomeConfigEntryForm extends LitElement {
    * it at a higher level and opens the dialog from scratch.
    */
   private _requestAddComponent(domain: string) {
-    this.dispatchEvent(
-      new CustomEvent("request-add-component", {
-        detail: { domain },
-        bubbles: true,
-        composed: true,
-      })
-    );
+    fireEvent(this, "request-add-component", { domain });
   }
 
   /**

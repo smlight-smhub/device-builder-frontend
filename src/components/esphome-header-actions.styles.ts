@@ -1,5 +1,7 @@
 import { css } from "lit";
 
+import { MOBILE_BREAKPOINT } from "../styles/breakpoints.js";
+
 export const headerActionsStyles = css`
   :host {
     display: inline-flex;
@@ -11,6 +13,9 @@ export const headerActionsStyles = css`
     position: relative;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    width: var(--esphome-header-action-box);
+    box-sizing: border-box;
     border: none;
     background: none;
     color: var(--esphome-on-primary);
@@ -103,6 +108,12 @@ export const headerActionsStyles = css`
   /* Touch-primary viewports have no hardware keyboard to teach. */
   @media (hover: none) {
     .menu-item-shortcut {
+      display: none;
+    }
+  }
+
+  @media (max-width: ${MOBILE_BREAKPOINT}px) {
+    .menu-item--tour {
       display: none;
     }
   }

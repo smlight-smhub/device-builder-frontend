@@ -28,6 +28,8 @@ interface Harness {
   _timerJobId: string;
   _commandType: CommandType;
   _timer: RunTimerController;
+  _timerDetailOpen: boolean;
+  _toggleTimerDetail: () => void;
   followJob: (job: FirmwareJob, displayName: string) => void;
 }
 
@@ -235,6 +237,43 @@ describe("command-dialog compile detail (total never shorter than compile)", () 
     expect(el._timer.compileDetailMs).toBe(5000);
   });
 
+  it("substitutes completed_at when the end stamp never landed (ESP-IDF)", () => {
+    // IDF builds don't print the "Took" banner, so the backend never stamps
+    // compile_ended_at. The ticker is also stale: the dialog was closed
+    // before the compile phase, so ``now`` predates the start stamp and the
+    // old ``now`` fallback clamped the readout to 0s.
+    const job = makeFirmwareJob({
+      job_id: "d4",
+      job_type: JobType.COMPILE,
+      started_at: "2026-01-01T00:00:00Z",
+      completed_at: "2026-01-01T00:10:41Z",
+      compile_started_at: "2026-01-01T00:01:54Z",
+      compile_ended_at: null,
+    });
+    const el = mount([job]);
+    el._timerJobId = "d4";
+    el._timer.now = Date.parse("2026-01-01T00:00:30Z");
+    expect(el._timer.compileDetailMs).toBe(527_000);
+    expect(el._timer.totalRunElapsedMs!).toBeGreaterThanOrEqual(
+      el._timer.compileDetailMs!
+    );
+  });
+
+  it("degrades to unknown for a stampless-end INSTALL (completion includes flash)", () => {
+    const job = makeFirmwareJob({
+      job_id: "d5",
+      job_type: JobType.INSTALL,
+      started_at: "2026-01-01T00:00:00Z",
+      completed_at: "2026-01-01T00:12:00Z",
+      compile_started_at: "2026-01-01T00:01:54Z",
+      compile_ended_at: null,
+    });
+    const el = mount([job]);
+    el._timerJobId = "d5";
+    el._timer.now = Date.parse("2026-01-01T00:00:30Z");
+    expect(el._timer.compileDetailMs).toBeNull();
+  });
+
   it("is null for an old finished job with no backend stamps (not shown)", () => {
     const job = makeFirmwareJob({
       job_id: "d3",
@@ -295,33 +334,33 @@ describe("command-dialog run timer visibility", () => {
 describe("command-dialog timer detail popover dismissal", () => {
   it("toggles open then closed", () => {
     const el = mount([]);
-    el._timer.toggleDetail();
-    expect(el._timer.showDetail).toBe(true);
-    el._timer.toggleDetail();
-    expect(el._timer.showDetail).toBe(false);
+    el._toggleTimerDetail();
+    expect(el._timerDetailOpen).toBe(true);
+    el._toggleTimerDetail();
+    expect(el._timerDetailOpen).toBe(false);
   });
 
   it("closes on a click outside the timer", () => {
     const el = mount([]);
-    el._timer.toggleDetail();
-    expect(el._timer.showDetail).toBe(true);
+    el._toggleTimerDetail();
+    expect(el._timerDetailOpen).toBe(true);
     // A document-level click whose composed path doesn't include the timer
     // wrap dismisses the popover.
     document.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    expect(el._timer.showDetail).toBe(false);
+    expect(el._timerDetailOpen).toBe(false);
   });
 
   it("closes on Escape without letting it reach the hosting dialog", () => {
     const el = mount([]);
-    el._timer.toggleDetail();
-    expect(el._timer.showDetail).toBe(true);
+    el._toggleTimerDetail();
+    expect(el._timerDetailOpen).toBe(true);
     const esc = new KeyboardEvent("keydown", {
       key: "Escape",
       bubbles: true,
       cancelable: true,
     });
     document.dispatchEvent(esc);
-    expect(el._timer.showDetail).toBe(false);
+    expect(el._timerDetailOpen).toBe(false);
     // Claimed, so the dialog's own Escape handling doesn't also close it.
     expect(esc.defaultPrevented).toBe(true);
   });

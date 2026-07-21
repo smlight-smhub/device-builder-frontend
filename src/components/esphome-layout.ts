@@ -12,6 +12,7 @@ import {
 } from "../context/index.js";
 import { MOBILE_BREAKPOINT } from "../styles/breakpoints.js";
 import { espHomeStyles } from "../styles/shared.js";
+import { textStyles } from "../styles/text.js";
 import { stripBase, withBase } from "../util/base-path.js";
 import { deviceBuilderChannel } from "../util/device-builder-channel.js";
 import { navigate, runLeaveGuard } from "../util/navigation.js";
@@ -107,6 +108,7 @@ export class ESPHomeLayout extends LitElement {
 
   static styles = [
     espHomeStyles,
+    textStyles,
     css`
       :host {
         display: block;
@@ -407,7 +409,7 @@ export class ESPHomeLayout extends LitElement {
           </button>
         </div>
         <div class="header-text">
-          <h1>
+          <h1 class="truncate">
             <span class="header-title-text">${this._localize("dashboard.title")}</span>
             ${
               this._versionBadge
@@ -415,7 +417,7 @@ export class ESPHomeLayout extends LitElement {
                 : nothing
             }
           </h1>
-          <p>${this._localize("dashboard.subtitle")}</p>
+          <p class="truncate">${this._localize("dashboard.subtitle")}</p>
         </div>
         <div class="header-spacer"></div>
         <esphome-header-actions

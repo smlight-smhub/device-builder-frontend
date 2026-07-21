@@ -3,6 +3,7 @@ import type { ESPHomeAPI } from "../../api/index.js";
 import { type ConfiguredDevice, DeviceState } from "../../api/types/devices.js";
 import type { LocalizeFunc } from "../../common/localize.js";
 import { canFlashBootloader } from "../../util/bootloader-flash.js";
+import { isNeverFlashed } from "../../util/never-flashed.js";
 import {
   launchLogs,
   launchLogsWithMethod,
@@ -24,6 +25,8 @@ export interface DeviceInstallControllerHost extends ReactiveControllerHost {
   readonly logsDialog: ESPHomeLogsDialog | null;
   readonly api: ESPHomeAPI;
   readonly localize: LocalizeFunc;
+  /** Re-attach the command dialog to the device's running job; true when one existed. */
+  openActiveJobProgress(): boolean;
 }
 
 export class DeviceInstallController implements ReactiveController {
@@ -58,9 +61,14 @@ export class DeviceInstallController implements ReactiveController {
     return canFlashBootloader(this._host.device);
   }
 
+  get neverFlashed(): boolean {
+    return isNeverFlashed(this._host.device);
+  }
+
   /** "Install" entry point — opens the install-method picker. */
   onInstall = () => {
     if (!this._host.device) return;
+    if (this._host.openActiveJobProgress()) return;
     this.methodMode = "install";
     this.installMethodOpen = true;
     this._host.requestUpdate();
@@ -105,6 +113,10 @@ export class DeviceInstallController implements ReactiveController {
       void launchLogsWithMethod(this._logsHost(logsDialog), device, method, port);
       return;
     }
+    // A job may have started while the picker sat open; enqueuing now
+    // would supersede it. Covers the firmwareDialog methods too, which
+    // never reach _openCommand's guard.
+    if (this._host.openActiveJobProgress()) return;
     applyInstallMethod(method, port, {
       device,
       firmwareDialog: this._host.firmwareDialog,
@@ -122,6 +134,9 @@ export class DeviceInstallController implements ReactiveController {
     port?: string,
     options?: { bootloader?: boolean }
   ) {
+    // Mirrors the dashboard's openCommand: an install enqueued over a
+    // running job would supersede it (cancel + restart).
+    if (type === "install" && this._host.openActiveJobProgress()) return;
     this._host.commandDialog?.openForDevice(device, type, { port, ...options });
   }
 }

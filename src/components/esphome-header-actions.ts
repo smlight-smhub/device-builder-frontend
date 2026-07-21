@@ -5,6 +5,7 @@ import {
   mdiCog,
   mdiCogRefresh,
   mdiCommentQuestionOutline,
+  mdiCompassOutline,
   mdiDotsVertical,
   mdiEyeOffOutline,
   mdiEyeOutline,
@@ -31,6 +32,7 @@ import {
 } from "../context/index.js";
 import { dropdownMenuStyles } from "../styles/dropdown-menu.js";
 import { espHomeStyles } from "../styles/shared.js";
+import { fireEvent } from "../util/fire-event.js";
 import { navigate } from "../util/navigation.js";
 import { registerMdiIcons } from "../util/register-icons.js";
 import { OPEN_COMMAND_PALETTE_EVENT } from "./command-palette-actions.js";
@@ -45,6 +47,7 @@ registerMdiIcons({
   cog: mdiCog,
   "cog-refresh": mdiCogRefresh,
   "comment-question-outline": mdiCommentQuestionOutline,
+  "compass-outline": mdiCompassOutline,
   "dots-vertical": mdiDotsVertical,
   "eye-off-outline": mdiEyeOffOutline,
   "eye-outline": mdiEyeOutline,
@@ -333,6 +336,18 @@ export class ESPHomeHeaderActions extends OverflowMenuElement {
                   <span class="menu-item-label">${this._localize("layout.search")}</span>
                   <kbd class="menu-item-shortcut">${searchShortcut}</kbd>
                 </div>
+                <div
+                  class="menu-item menu-item--tour"
+                  role="menuitem"
+                  tabindex="0"
+                  @click=${this._openGuidedTour}
+                  @keydown=${this._onItemKeydown}
+                >
+                  <wa-icon library="mdi" name="compass-outline"></wa-icon>
+                  <span class="menu-item-label"
+                    >${this._localize("layout.guided_tour")}</span
+                  >
+                </div>
                 <div class="menu-divider" role="separator"></div>
                 <div
                   class="menu-item"
@@ -380,47 +395,32 @@ export class ESPHomeHeaderActions extends OverflowMenuElement {
    *  hand-editing ``secrets.yaml``. */
   private _openOnboarding() {
     this._close();
-    this.dispatchEvent(
-      new CustomEvent("open-onboarding-wifi", {
-        bubbles: true,
-        composed: true,
-      })
-    );
+    fireEvent(this, "open-onboarding-wifi");
   }
 
   private _openFirmwareJobs() {
     this._close();
-    this.dispatchEvent(
-      new CustomEvent("open-firmware-jobs", {
-        bubbles: true,
-        composed: true,
-      })
-    );
+    fireEvent(this, "open-firmware-jobs");
   }
 
   private _openResetBuildEnv() {
     this._close();
-    this.dispatchEvent(
-      new CustomEvent("open-reset-build-env", {
-        bubbles: true,
-        composed: true,
-      })
-    );
+    fireEvent(this, "open-reset-build-env");
   }
 
   private _openSettings() {
     this._close();
-    this.dispatchEvent(
-      new CustomEvent("open-settings", {
-        bubbles: true,
-        composed: true,
-      })
-    );
+    fireEvent(this, "open-settings");
   }
 
   private _openSearch() {
     this._close();
     window.dispatchEvent(new Event(OPEN_COMMAND_PALETTE_EVENT));
+  }
+
+  private _openGuidedTour() {
+    this._close();
+    fireEvent(this, "open-guided-tour");
   }
 
   private _offloaderAlertsCount(): number {
@@ -429,22 +429,12 @@ export class ESPHomeHeaderActions extends OverflowMenuElement {
 
   private _openFeedback() {
     this._close();
-    this.dispatchEvent(
-      new CustomEvent("open-feedback", {
-        bubbles: true,
-        composed: true,
-      })
-    );
+    fireEvent(this, "open-feedback");
   }
 
   private _openCheckForUpdates() {
     this._close();
-    this.dispatchEvent(
-      new CustomEvent("open-check-updates", {
-        bubbles: true,
-        composed: true,
-      })
-    );
+    fireEvent(this, "open-check-updates");
   }
 }
 
