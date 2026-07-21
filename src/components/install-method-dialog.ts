@@ -230,7 +230,8 @@ export class ESPHomeInstallMethodDialog extends LitElement {
     // blocked here and the external flasher only flashes), so offer a link to
     // ESPHome Web — a secure-context origin where the user can connect over USB
     // and read serial logs. ESP-only, like the USB row.
-    const showLogsWebRow = isTest && isLogs && isEsptool && availability === "insecure-context";
+    const showLogsWebRow =
+      isTest && isLogs && isEsptool && availability === "insecure-context";
 
     const ctx = this._rowContext();
     const otaRow = renderOtaOption(ctx);
@@ -408,7 +409,6 @@ export class ESPHomeInstallMethodDialog extends LitElement {
       }
     `;
   }
-
 
   /**
    * "Advanced options" disclosure at the bottom of the method
