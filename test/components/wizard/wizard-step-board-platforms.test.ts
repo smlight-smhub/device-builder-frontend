@@ -160,6 +160,7 @@ describe("wizard step-board platform chips", () => {
       "rtl87xx",
       "ln882x",
       "nrf52",
+      "sg2000",
     ]);
     for (const p of WIZARD_BOARD_PLATFORMS) {
       expect(accepted.has(p.platform)).toBe(true);
